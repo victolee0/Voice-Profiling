@@ -1,0 +1,29 @@
+{% extends 'main.html' %}
+{% block content %}
+
+
+<div class="modal" tabindex="-1" role="dialog" id="testModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div>오디오: <span id="audio2"></span></div>
+        <div class="pt-3">예측 분류:</div>
+        <p>{{results}}</p>
+        <div id="prediction"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">데이터보기</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}

@@ -1,0 +1,1 @@
+web: gunicorn voice-profiling.wsgi --log-file -
