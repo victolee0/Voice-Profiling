@@ -6,25 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Deep Voice</title>
-    <!--<link rel="stylesheet" href="/static/css/main.css">-->
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Single+Day&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
     <style type="text/css">
-        a:link {
-            color: black;
-            text-decoration: none;
-        }
-
-        a:visited {
-            color: black;
-            text-decoration: none;
-        }
-
-        a:hover {
-            color: black;
-            text-decoration: underline dotted red;
-        }
-
         .pt-3 {
             font-weight: bold;
         }
@@ -42,50 +26,57 @@
 
 <body>
 
-    <h1 class="ffont">Deep Voice<img src="https://img.icons8.com/dotty/80/000000/microphone.png" /></h1>
-    <div class="btn-group">
-        <input type=checkbox id="chk-hear-mic"><label for="chk-hear-mic">마이크</label>
-        <button class="button" style="border: 3px solid black;" id="record">녹음</button>
-        <button class="button" style="border: 3px solid black;" id="stop">정지</button>
+    <h1 class="font">Deep Voice<img src="https://img.icons8.com/dotty/80/000000/microphone.png" /></h1>
+    <div class="btn-group_style">
+        <input type=checkbox id="chk-hear-mic" style="margin:3px;"><label for="chk-hear-mic">마이크 테스트</label>
+        <div class="btn-group">
+            <button class="button" style="border: 2px solid black;" id="record">녹음</button>
+            <button class="button" style="border: 2px solid black;" id="stop">정지</button>
+        </div>
         <div id="sound-clips"></div>
     </div>
 
-    <form id='testForm' method='post'>
+
+
+    <form id='testForm' method='post' style="margin:3px;">
         <button id="submitbtn" type="submit" class="btn btn-primary" data-toggle="modal"
-            data-target="#exampleModal">Submit(Parameter sharing)</button>
+            data-target="#exampleModal">Submit(Parameter Sharing)</button>
         <button id="submitbtn_CLSTM" type="submit" class="btn btn-primary" data-toggle="modal"
             data-target="#exampleModal">Submit(CLSTM)</button>
     </form>
-
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">
-                        <div style="vertical-align: inherit;">
-                            예측분류
+    <div style="color:black;">
+        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-fullsize" role="document">
+                <div class="modal-content modal-fullsize">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">
+                            <div style="vertical-align: inherit;">
+                                예측분류
+                            </div>
+                        </h5>
+                    </div>
+                    <div class="modal-body" style="width:500px">
+                        <div class="pt-3">연령</div>
+                        <div id="age">
                         </div>
-                    </h5>
-                </div>
-                <br>
-                <div class="modal-body">
-                    <div class="pt-3">연령</div>
-                    <div id="age">
+                        <div class="pt-3">성별</div>
+                        <div id="gender">
+                        </div>
+                        <div class="pt-3">방언</div>
+                        <div id="dialect">
+                        </div>
+                        <div class="pt-3">모델 설명</div>
+                        <img src="/static/asset/Para_CLSTM.png" width="1600" height="400" alt="텍스트" align="middle">
                     </div>
-                    <div class="pt-3">성별</div>
-                    <div id="gender">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
                     </div>
-                    <div class="pt-3">방언</div>
-                    <div id="dialect">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
                 </div>
             </div>
         </div>
     </div>
+
 
     <script src="https://code.jquery.com/jquery-3.6.0.js"
         integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
@@ -127,17 +118,131 @@
         }
 
 
+        /*
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)() // 오디오 컨텍스트 정의
+
+                const analyser = audioCtx.createAnalyser()
+                //        const distortion = audioCtx.createWaveShaper()
+                //        const gainNode = audioCtx.createGain()
+                //        const biquadFilter = audioCtx.createBiquadFilter()
+
+                function makeSound(stream) {
+                    const source = audioCtx.createMediaStreamSource(stream)
+
+                    source.connect(analyser)
+                    //            analyser.connect(distortion)
+                    //            distortion.connect(biquadFilter)
+                    //            biquadFilter.connect(gainNode)
+                    //            gainNode.connect(audioCtx.destination) // connecting the different audio graph nodes together
+                    analyser.connect(audioCtx.destination)
+
+                }
+
+                if (navigator.mediaDevices) {
+                    console.log('getUserMedia supported.')
+
+                    const constraints = {
+                        audio: true
+                    }
+                    let chunks = []
+
+                    navigator.mediaDevices.getUserMedia(constraints)
+                        .then(stream => {
+
+                            var options = {mimeType: 'audio/wav; codecs=pcm'}
+
+                            const mediaRecorder = new MediaRecorder(stream)
+
+                            chkHearMic.onchange = e => {
+                                if (e.target.checked == true) {
+                                    audioCtx.resume()
+                                    makeSound(stream)
+                                } else {
+                                    audioCtx.suspend()
+                                }
+                            }
+
+                            record.onclick = () => {
+                                mediaRecorder.start()
+                                console.log(mediaRecorder.state)
+                                console.log("recorder started")
+                                record.style.background = "red"
+                                record.style.color = "black"
+                            }
+
+                            stop.onclick = () => {
+                                mediaRecorder.stop()
+                                console.log(mediaRecorder.state)
+                                console.log("recorder stopped")
+                                record.style.background = ""
+                                record.style.color = ""
+                            }
+
+                            mediaRecorder.onstop = e => {
+                                console.log("data available after MediaRecorder.stop() called.")
+
+                                const clipName = prompt("오디오 파일 제목을 입력하세요.", 'audio_test')
+
+                                const clipContainer = document.createElement('article')
+                                const clipLabel = document.createElement('p')
+                                const audio = document.createElement('audio')
+                                const deleteButton = document.createElement('button')
+
+                                clipContainer.classList.add('clip')
+                                audio.setAttribute('controls', '')
+                                deleteButton.innerHTML = "삭제"
+                                clipLabel.innerHTML = clipName
+
+                                clipContainer.appendChild(audio)
+                                clipContainer.appendChild(clipLabel)
+                                clipContainer.appendChild(deleteButton)
+                                soundClips.appendChild(clipContainer)
+
+                                audio.controls = true
+                                blob = new Blob(chunks, {
+                                    'type': 'audio/wav; codecs=pcm'
+                                })
+                                chunks = []
+                                const audioURL = URL.createObjectURL(blob)
+                                audio.src = audioURL
+                                console.log("recorder stopped")
+                                console.log(blob)
+                                console.log(chunks)
+
+
+                                deleteButton.onclick = e => {
+                                    evtTgt = e.target
+                                    evtTgt.parentNode.parentNode.removeChild(evtTgt.parentNode)
+                                }
+                            }
+
+                            mediaRecorder.ondataavailable = e => {
+                                chunks.push(e.data)
+                            }
+                        })
+                        .catch(err => {
+                            console.log('The following error occurred: ' + err)
+                        })
+                }
+        */
         $("#submitbtn").on('click', function (e) {
             e.preventDefault();
+            //var audioFile = $("input[name='audioFile']");
             var files = soundFile.getBlob();
             console.log(files)
+            //var files = audioFile[0].files;
             var testForm = document.getElementById("testForm");
             var formData = new FormData(testForm);
 
             formData.append("audioFile", files);
             formData.append("type", "HPS")
 
-
+            /*
+                        for (var i = 0; i < files.length; i++) {
+                            formData.append("audioFile", files[i]);
+                            console.log(files[i]);
+                        }
+            */
             for (var pair of formData.entries()) { console.log(pair[0] + ', ' + pair[1] + ', ' + pair); }
 
             console.log(formData);
@@ -157,6 +262,7 @@
                     console.log(json['age']);
                     console.log(json.age);
                     $('#testModal').modal("show");
+                    //document.forms["post-form"].reset();
                     document.getElementById("age").innerHTML = json['age'];
                     document.getElementById("gender").innerHTML = json['gender'];
                     document.getElementById("dialect").innerHTML = json['dialect'];
@@ -169,14 +275,22 @@
 
         $("#submitbtn_CLSTM").on('click', function (e) {
             e.preventDefault();
+            //var audioFile = $("input[name='audioFile']");
             var files = soundFile.getBlob();
             console.log(files)
+            //var files = audioFile[0].files;
             var testForm = document.getElementById("testForm");
             var formData = new FormData(testForm);
 
             formData.append("audioFile", files);
             formData.append("type", "CLSTM")
 
+            /*
+                        for (var i = 0; i < files.length; i++) {
+                            formData.append("audioFile", files[i]);
+                            console.log(files[i]);
+                        }
+            */
             for (var pair of formData.entries()) { console.log(pair[0] + ', ' + pair[1] + ', ' + pair); }
 
             console.log(formData);
@@ -196,6 +310,7 @@
                     console.log(json['age']);
                     console.log(json.age);
                     $('#testModal').modal("show");
+                    //document.forms["post-form"].reset();
                     document.getElementById("age").innerHTML = json['age'];
                     document.getElementById("gender").innerHTML = json['gender'];
                     document.getElementById("dialect").innerHTML = json['dialect'];

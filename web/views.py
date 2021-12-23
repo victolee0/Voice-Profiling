@@ -2,6 +2,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import JsonResponse
 from librosa.feature.spectral import mfcc
+from torch.autograd import Variable
 import torch
 import librosa
 from rnnoise_wrapper import RNNoise
@@ -16,12 +17,13 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 dtype = torch.float32
 
 
-class CLSTM3(nn.Module):
+
+class CLSTM_Fin(nn.Module):
     def __init__(self, num_channels=3, channel_1=16, channel_2=8,
                  hidden_size1=8, hidden_size2=16, hidden_size3=32,
                  num_classes1=4, num_classes2=2, num_classes3=6,
-                 num_layers=2, batch_size=4096):
-        super(CLSTM3, self).__init__()
+                 num_layers=2, batch_size=20):
+        super(CLSTM_Fin, self).__init__()
         self.num_channels = num_channels
         self.channel_1 = channel_1
         self.channel_2 = channel_2
@@ -50,15 +52,6 @@ class CLSTM3(nn.Module):
         self.fc2 = nn.Linear(400, num_classes2)
         self.fc3 = nn.Linear(400, num_classes3)
 
-        self.h01 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size1))
-        self.c01 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size1))
-
-        self.h02 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size2))
-        self.c02 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size2))
-
-        self.h03 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size3))
-        self.c03 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, self.batch_size, self.hidden_size3))
-
         nn.init.xavier_uniform_(self.conv1.weight)
         nn.init.xavier_uniform_(self.conv2.weight)
         nn.init.xavier_uniform_(self.conv3.weight)
@@ -69,6 +62,24 @@ class CLSTM3(nn.Module):
     def forward(self, x):
         ###### 음성 데이터 Feature 추출 ######
 
+        self.h01 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size1, device=x.device))
+        self.c01 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size1, device=x.device))
+
+        self.h02 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size2, device=x.device))
+        self.c02 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size2, device=x.device))
+
+        self.h03 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size3, device=x.device))
+        self.c03 = torch.nn.parameter.Parameter(torch.zeros(self.num_layers, x.size(0), self.hidden_size3, device=x.device))
+
+        #self.h01 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size1))
+        #self.c01 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size1))
+
+        #self.h02 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size2))
+        #self.c02 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size2))
+
+        #self.h03 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size3))
+        #self.c03 = Variable(torch.zeros(self.num_layers, x.size(0), self.hidden_size3))
+
         x = self.conv1(x)
         x = F.relu(self.bn1(x))
 
@@ -78,7 +89,7 @@ class CLSTM3(nn.Module):
         x = self.conv3(x)
         x = F.relu(self.bn3(x))
 
-        x = x.view(self.batch_size, -1, 400).transpose(2, 1)  # LSTM Input 완성
+        x = x.view(x.size(0), -1, 400).transpose(2, 1)  # LSTM Input 완성
 
         ###### LSTM 학습 시작 ######
 
@@ -233,32 +244,22 @@ def predict(request):
             print("HPS")
             model=Shared_CNN()
             model.load_state_dict(torch.load('HPS_CNN_SGD.pt', map_location=device))
-            model.eval()
-            with torch.no_grad():
-                x = torch.tensor(mfcc_result).view(1, 3, 14, 400)
-                x = x.to(device=device, dtype=dtype)
-                model = model.to(device=device)
-                age_score, gender_score, dialect_score = model(x)
-                age = age_score.max(1)
-                gender = gender_score.max(1)
-                dialect = dialect_score.max(1)
+
         elif model_type == "CLSTM":
             print("CLSTM")
-            tmp = torch.randn((4096,3,14,400))
-            for i in range(4096):
-                tmp[i] = mfcc_result
-            mfcc_result = tmp
-            model=CLSTM3()
-            model.load_state_dict(torch.load('CLSTM_SGD.pt', map_location=device))
-            model.eval()
-            with torch.no_grad():
-                x = torch.tensor(mfcc_result).view(4096, 3, 14, 400)
-                x = x.to(device=device, dtype=dtype)
-                model = model.to(device=device)
-                age_score, gender_score, dialect_score = model(x)
-                age = age_score.max(1)
-                gender = gender_score.max(1)
-                dialect = dialect_score.max(1)
+
+            model=CLSTM_Fin()
+            model.load_state_dict(torch.load('CLSTM_ADAM_fin3.pt', map_location=device))
+
+        model.eval()                
+        with torch.no_grad():
+            x = torch.tensor(mfcc_result).view(1, 3, 14, 400)
+            x = x.to(device=device, dtype=dtype)
+            model = model.to(device=device)
+            age_score, gender_score, dialect_score = model(x)
+            age = age_score.max(1)
+            gender = gender_score.max(1)
+            dialect = dialect_score.max(1)
 
         age_ = ["청소년", "청년", "중장년", "노년"]
         gender_ = ["여성", "남성"]
@@ -283,7 +284,7 @@ def predict(request):
 def predict_app(request):
     if request.method == 'post':
 
-        denoiser=RNNoise()
+       # denoiser=RNNoise()
         print("OK")
 
         blob = request.POST.get('audioFile')
