@@ -5,7 +5,7 @@ from librosa.feature.spectral import mfcc
 from torch.autograd import Variable
 import torch
 import librosa
-from rnnoise_wrapper import RNNoise
+#from rnnoise_wrapper import RNNoise
 import torchaudio
 import io
 import torch.nn as nn
@@ -196,7 +196,7 @@ def main(request):
 def predict(request):
     if request.method == 'POST':
 
-        denoiser=RNNoise()
+#        denoiser=RNNoise()
 
         blob = request.FILES
 
