@@ -1,9 +1,10 @@
 from django.http.response import HttpResponse
 from django.shortcuts import render
 from django.http import JsonResponse
+from librosa.feature.spectral import mfcc
 import torch
 import librosa
-#from rnnoise_wrapper import RNNoise
+from rnnoise_wrapper import RNNoise
 import torchaudio
 import io
 import torch.nn as nn
@@ -184,27 +185,18 @@ def main(request):
 def predict(request):
     if request.method == 'POST':
 
-        #데이터 입력값 받기
-        #denoiser=RNNoise()
+        denoiser=RNNoise()
 
         blob = request.FILES
 
         print(blob)
-        #y, sr = torchaudio.load(blob['audioFile'].file)
         b = blob['audioFile'].file.getvalue()
         model_type = request.POST['type']
-        #print(wave.open(blob['audioFile'].file))
         y, sr = torchaudio.load(io.BytesIO(b))
 
         if y.size()[0] == 2:
             y = y[0]
 
-        #tmp = {'Directory': directory} #data.append(tmp, ignore_index=True) #file_dir = data['Directory']
-        #denoiser = RNNoise()
-        #audio = denoiser.read_wav(io.BytesIO(b))######
-        #sr = audio.frame_rate
-        #denoised_audio = denoiser.filter(audio)
-        #signal = torch.tensor(denoised_audio.get_array_of_samples()) / 2**15
         vad=torchaudio.transforms.Vad(sr)
         signal=vad(y)
         n_fft = int(np.ceil(0.025 * sr))
@@ -242,21 +234,31 @@ def predict(request):
             model=Shared_CNN()
             model.load_state_dict(torch.load('HPS_CNN_SGD.pt', map_location=device))
             model.eval()
+            with torch.no_grad():
+                x = torch.tensor(mfcc_result).view(1, 3, 14, 400)
+                x = x.to(device=device, dtype=dtype)
+                model = model.to(device=device)
+                age_score, gender_score, dialect_score = model(x)
+                age = age_score.max(1)
+                gender = gender_score.max(1)
+                dialect = dialect_score.max(1)
         elif model_type == "CLSTM":
             print("CLSTM")
+            tmp = torch.randn((4096,3,14,400))
+            for i in range(4096):
+                tmp[i] = mfcc_result
+            mfcc_result = tmp
             model=CLSTM3()
             model.load_state_dict(torch.load('CLSTM_SGD.pt', map_location=device))
             model.eval()
-
-
-        with torch.no_grad():
-            x = torch.tensor(mfcc_result).view(1, 3, 14, 400)
-            x = x.to(device=device, dtype=dtype)
-            model = model.to(device=device)
-            age_score, gender_score, dialect_score = model(x)
-            age = age_score.max(1)
-            gender = gender_score.max(1)
-            dialect = dialect_score.max(1)
+            with torch.no_grad():
+                x = torch.tensor(mfcc_result).view(4096, 3, 14, 400)
+                x = x.to(device=device, dtype=dtype)
+                model = model.to(device=device)
+                age_score, gender_score, dialect_score = model(x)
+                age = age_score.max(1)
+                gender = gender_score.max(1)
+                dialect = dialect_score.max(1)
 
         age_ = ["청소년", "청년", "중장년", "노년"]
         gender_ = ["여성", "남성"]
@@ -281,8 +283,7 @@ def predict(request):
 def predict_app(request):
     if request.method == 'post':
 
-        #데이터 입력값 받기
-        #denoiser=RNNoise()
+        denoiser=RNNoise()
         print("OK")
 
         blob = request.POST.get('audioFile')
@@ -293,36 +294,3 @@ def predict_app(request):
                             'blob':blob[0]
                             })
 
-'''
-        #modcd ..el 가져오기
-        ## 모델 클래스는 어딘가에 반드시 선언되어 있어야 합니다
-        model=FeatureSharing1()
-        model=model.load_state_dict(torch.load('model.pt'))
-        model.eval()
-
-        with torch.no_grad():
-            x = torch.tensor(data['input']).view(1, 3, 14, 400)
-            x = x.to(device=device, dtype=dtype)
-            model = model.to(device=device)
-            age_score, gender_score, dialect_score = model(x)
-            age = age_score.max(1)
-            gender = gender_score.max(1)
-            dialect = dialect_score.max(1)
-
-        age_ = ["유아", "청소년", "청년", "중장년", "노년"]
-        gender_ = ["여성", "남성"]
-        dialect_ = ['수도권', '전라도', '경상도', '충청도', '강원도', '제주도']
-        results=[]
-
-        for i in range(len(age_)):
-            if age[1].tolist()[0] == i:
-                results.append(age_[i])
-
-        for i in range(len(gender_)):
-            if gender[1].tolist()[0] == i:
-                results.append(gender_[i])
-
-        for i in range(len(dialect_)):
-            if dialect[1].tolist()[0] == i:
-                results.append(dialect_[i])
-'''
