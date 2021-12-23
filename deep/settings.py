@@ -25,7 +25,7 @@ SECRET_KEY = '*eo@-uw3*e=@$va$+aj2x4_e9w7bd43t=)i$_6*$&%t1w59zqv'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = bool( os.environ.get('DJANGO_DEBUG', True) )
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['voice-profiling.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
@@ -107,7 +107,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'ko-kr'
 
-TIME_ZONE = 'Asia/seoul'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -121,7 +121,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 import dj_database_url
 db_from_env = dj_database_url.config(conn_max_age=500)
 DATABASES['default'].update(db_from_env)
+
