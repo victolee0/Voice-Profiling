@@ -28,7 +28,6 @@
 
     <h1 class="font">Deep Voice<img src="https://img.icons8.com/dotty/80/000000/microphone.png" /></h1>
     <div class="btn-group_style">
-        <input type=checkbox id="chk-hear-mic" style="margin:3px;"><label for="chk-hear-mic">마이크 테스트</label>
         <div class="btn-group">
             <button class="button" style="border: 2px solid black;" id="record">녹음</button>
             <button class="button" style="border: 2px solid black;" id="stop">정지</button>
@@ -49,13 +48,14 @@
     <div style="color:black;">
         <div class="modal fade" id="exampleModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel2"
             aria-hidden="true">
-            <div class="modal-dialog modal-fullsize" role="document">
-                <div class="modal-content modal-fullsize">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="exampleModalLabel2">모델 소개</h5>
                     </div>
                     <div class="modal-body">
-                        <img src="/static/asset/Para_CLSTM.png" width="1600" height="400" alt="텍스트" align="middle">
+                        <img src="/static/asset/Para.png" width="100%" alt="텍스트" align="middle">
+                        <img src="/static/asset/CLSTM.png" width="100%" alt="텍스트" align="middle">
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">닫기</button>
@@ -76,7 +76,7 @@
                             </div>
                         </h5>
                     </div>
-                    <div class="modal-body" style="width:500px">
+                    <div class="modal-body">
                         <div class="pt-3">연령</div>
                         <div id="age">
                         </div>
@@ -185,6 +185,7 @@
 
             formData.append("audioFile", files);
             formData.append("type", "CLSTM")
+
 
             for (var pair of formData.entries()) { console.log(pair[0] + ', ' + pair[1] + ', ' + pair); }
 

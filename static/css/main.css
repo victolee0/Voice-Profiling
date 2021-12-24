@@ -14,13 +14,3 @@
 }
 
 .button:hover {background-color: #EDCAFA;}
-
-.modal-dialog.modal-fullsize {
-  max-width: 1650px;
-  height: 100%;
-
-}
-.modal-content.modal-fullsize {
-  height: auto;
-
-}
