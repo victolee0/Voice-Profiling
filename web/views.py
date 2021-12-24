@@ -249,7 +249,7 @@ def predict(request):
             print("CLSTM")
 
             model=CLSTM_Fin()
-            model.load_state_dict(torch.load('CLSTM_Adam_Fin3.pt', map_location=device))
+            model.load_state_dict(torch.load('CLSTM_SGD_Fin.pt', map_location=device))
 
         model.eval()                
         with torch.no_grad():
